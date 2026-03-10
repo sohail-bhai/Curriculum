@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ subject.subject_code }} — {{ subject.subject_title }}</title>
+  <style>
+    string-set: course-code "{{ subject.subject_code }}";
+    string-set: institution "{{ institution_name }}";
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="doc-header">
+  <div class="institution">{{ institution_name }}</div>
+  <div class="doc-title">COURSE SYLLABUS</div>
+  <div class="subject-id">{{ subject.subject_code }} &mdash; {{ subject.subject_title }}</div>
+  <div style="margin-top:6pt; font-size:9pt; color:#666;">
+    Department: {{ subject.department_name }}
+    &nbsp;|&nbsp;
+    Status: <span class="status-badge status-{{ subject.status }}">{{ subject.status }}</span>
+    &nbsp;|&nbsp;
+    Generated: {{ generated_at }}
+  </div>
+</div>
+
+<!-- SECTION 1: Basic Information -->
+<div class="section">
+  <div class="section-title">1. Basic Information</div>
+  <table class="ltpsic-table">
+    <thead>
+      <tr>
+        <th class="code-cell" style="text-align:left;">Subject Code</th>
+        <th class="code-cell" style="text-align:left;">Subject Title</th>
+        <th>L</th><th>T</th><th>P</th><th>S</th><th>I</th><th>C</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="code-cell">{{ subject.subject_code }}</td>
+        <td class="code-cell">{{ subject.subject_title }}</td>
+        <td>{{ subject.lecture_hours }}</td>
+        <td>{{ subject.tutorial_hours }}</td>
+        <td>{{ subject.practical_hours }}</td>
+        <td>{{ subject.studio_hours }}</td>
+        <td>{{ subject.independent_hours }}</td>
+        <td><strong>{{ subject.credits }}</strong></td>
+      </tr>
+    </tbody>
+  </table>
+  <table style="margin-top:6pt;">
+    <tr><td class="field-col" style="font-weight:600;width:20%;">Pre-requisite</td><td>{{ subject.pre_requisite|default:"NIL" }}</td>
+        <td class="field-col" style="font-weight:600;width:20%;">Co-requisite</td><td>{{ subject.co_requisite|default:"NIL" }}</td></tr>
+  </table>
+</div>
+
+<!-- SECTION 2: Course Description -->
+{% if subject.course_description %}
+<div class="section">
+  <div class="section-title">2. Course Description</div>
+  <p>{{ subject.course_description }}</p>
+</div>
+{% endif %}
+
+<!-- SECTION 3: Course Objectives -->
+{% if subject.objectives.all %}
+<div class="section">
+  <div class="section-title">3. Course Objectives</div>
+  <ol>
+    {% for obj in subject.objectives.all %}
+    <li>{{ obj.text }}</li>
+    {% endfor %}
+  </ol>
+</div>
+{% endif %}
+
+<!-- SECTION 4: Units and Topics -->
+{% if subject.units.all %}
+<div class="section">
+  <div class="section-title">4. Course Content (Units and Topics)</div>
+  {% for unit in subject.units.all %}
+  <div class="unit-block">
+    <div class="unit-title">Unit {{ unit.unit_number }}: {{ unit.title }} &nbsp;({{ unit.hours }} Hours)</div>
+    {% if unit.topics.all %}
+    <p>{{ unit.topics.all|join:", " }}</p>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- SECTION 5: Practical Exercises -->
+{% if subject.practicals.all %}
+<div class="section">
+  <div class="section-title">5. Practical Exercises</div>
+  <ol>
+    {% for p in subject.practicals.all %}
+    <li>{{ p.text }}</li>
+    {% endfor %}
+  </ol>
+</div>
+{% endif %}
+
+<!-- SECTION 6: Textbooks -->
+{% if subject.textbooks.all %}
+<div class="section">
+  <div class="section-title">6. Textbooks</div>
+  <ol>
+    {% for t in subject.textbooks.all %}
+    <li>{{ t.citation }}{% if t.isbn %} — ISBN: {{ t.isbn }}{% endif %}</li>
+    {% endfor %}
+  </ol>
+</div>
+{% endif %}
+
+<!-- SECTION 7: References -->
+{% if subject.references.all %}
+<div class="section">
+  <div class="section-title">7. References</div>
+  <ol>
+    {% for r in subject.references.all %}
+    <li>{{ r.citation }}{% if r.url %} — <em>{{ r.url }}</em>{% endif %}</li>
+    {% endfor %}
+  </ol>
+</div>
+{% endif %}
+
+<!-- SECTION 8: Course Outcomes -->
+{% if subject.course_outcomes.all %}
+<div class="section">
+  <div class="section-title">8. Course Outcomes (COs)</div>
+  <ol>
+    {% for co in subject.course_outcomes.all %}
+    <li><strong>CO{{ co.order }}:</strong> {{ co.text }}</li>
+    {% endfor %}
+  </ol>
+</div>
+{% endif %}
+
+<!-- SECTION 9: Articulation Matrix -->
+{% if matrix_data %}
+<div class="section">
+  <div class="section-title">9. Course Articulation Matrix (CO–PO/PSO Mapping)</div>
+  <p style="font-size:8.5pt; color:#666; margin-bottom:6pt;">
+    1 = Low Correlation &nbsp;|&nbsp; 2 = Medium Correlation &nbsp;|&nbsp; 3 = High Correlation &nbsp;|&nbsp; — = Not Applicable
+  </p>
+  <table class="matrix-table">
+    <thead>
+      <tr>
+        <th>CO</th>
+        {% for label in po_labels %}<th>{{ label }}</th>{% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in matrix_data %}
+      <tr>
+        <td class="co-cell">{{ row.co_label }}</td>
+        {% for val in row.values %}
+        <td class="{% if val == 1 %}val-1{% elif val == 2 %}val-2{% elif val == 3 %}val-3{% endif %}">
+          {{ val|default:"—" }}
+        </td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<!-- SECTION 10: SDG Mapping -->
+{% if subject.sdg_mappings.all %}
+<div class="section">
+  <div class="section-title">10. SDG Mapping</div>
+  <table>
+    <thead>
+      <tr><th>SDG Number</th><th>SDG Theme</th><th>Statement</th></tr>
+    </thead>
+    <tbody>
+      {% for sdg in subject.sdg_mappings.all %}
+      <tr>
+        <td>{{ sdg.sdg_number }}</td>
+        <td>{{ sdg.sdg_theme }}</td>
+        <td>{{ sdg.statement }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if subject.sdg_justification %}
+  <p style="margin-top:8pt;"><strong>Justification:</strong> {{ subject.sdg_justification }}</p>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- SECTION 11: SME Details -->
+{% if subject.sme_detail %}
+<div class="section">
+  <div class="section-title">11. Subject Matter Expert (SME)</div>
+  <table>
+    <tr><td style="font-weight:600;width:30%;">Faculty Name</td><td>{{ subject.sme_detail.faculty_name }}</td></tr>
+    <tr><td style="font-weight:600;">Designation</td><td>{{ subject.sme_detail.designation }}</td></tr>
+    <tr><td style="font-weight:600;">Email</td><td>{{ subject.sme_detail.email }}</td></tr>
+  </table>
+</div>
+{% endif %}
+
+<!-- HOD REVIEW TABLE -->
+<div class="section" style="page-break-before: always;">
+  <div class="section-title">HOD Review &amp; Approval</div>
+  <table class="hod-review-table">
+    <tr>
+      <td class="field-col">Submitted By</td>
+      <td>{{ hod_info.submitted_by }}</td>
+    </tr>
+    <tr>
+      <td class="field-col">Department</td>
+      <td>{{ hod_info.department }}</td>
+    </tr>
+    <tr>
+      <td class="field-col">Submitted To (HOD)</td>
+      <td>{{ hod_info.submitted_to }}</td>
+    </tr>
+    <tr>
+      <td class="field-col">Approved by HOD</td>
+      <td><strong>{{ hod_info.approved_by_hod }}</strong></td>
+    </tr>
+    <tr>
+      <td class="field-col">Approval Date</td>
+      <td>{{ hod_info.approval_date }}</td>
+    </tr>
+    <tr>
+      <td class="field-col">Current Status</td>
+      <td>
+        <span class="status-badge status-{{ subject.status }}">{{ hod_info.current_status }}</span>
+      </td>
+    </tr>
+    {% if hod_info.approval_comments and hod_info.approval_comments != '—' %}
+    <tr>
+      <td class="field-col">HOD Comments</td>
+      <td>{{ hod_info.approval_comments }}</td>
+    </tr>
+    {% endif %}
+  </table>
+</div>
+
+<div class="footer-note">
+  Generated by CurriculumOS &mdash; {{ institution_name }} &mdash; {{ generated_at }}
+</div>
+
+</body>
+</html>

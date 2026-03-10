@@ -1,0 +1,307 @@
+<!-- Reusable Modal/Dialog Components -->
+
+<!-- Generic Modal Component -->
+{% macro modal(id, title, size='md', closable=True, backdrop=True) %}
+<!-- Backdrop -->
+<div id="{{ id }}-backdrop" 
+     x-show="isOpen"
+     @click="{% if backdrop %}closeModal(){% endif %}"
+     class="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center p-4"
+     style="display: none;">
+    
+    <!-- Modal Container -->
+    <div class="bg-white rounded-lg shadow-xl transform transition-all max-w-full"
+         @click.stop
+         {% if size == 'sm' %}class="w-full sm:max-w-sm"{% elif size == 'md' %}class="w-full sm:max-w-md"{% elif size == 'lg' %}class="w-full sm:max-w-lg"{% elif size == 'xl' %}class="w-full sm:max-w-xl"{% endif %}>
+        
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between p-6 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-900">{{ title }}</h2>
+            {% if closable %}
+                <button @click="closeModal()"
+                        class="text-gray-400 hover:text-gray-600 transition">
+                    <svg class="w-6 h-6" data-feather="x"></svg>
+                </button>
+            {% endif %}
+        </div>
+        
+        <!-- Modal Body -->
+        <div id="{{ id }}-content" class="p-6">
+            {{ caller() }}
+        </div>
+    </div>
+</div>
+{% endmacro %}
+
+<!-- Alert Dialog Modal -->
+{% macro alert_modal(id, title, message, icon='alert-circle', buttons=[]) %}
+<div id="{{ id }}" 
+     x-show="showModal === '{{ id }}'"
+     class="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center p-4"
+     style="display: none;">
+    
+    <div class="bg-white rounded-lg shadow-xl max-w-sm w-full transform transition-all">
+        <!-- Content -->
+        <div class="p-6 text-center">
+            <div class="mb-4">
+                <svg class="w-12 h-12 mx-auto text-amber-600" data-feather="{{ icon }}"></svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ title }}</h3>
+            <p class="text-gray-600 text-sm">{{ message }}</p>
+        </div>
+        
+        <!-- Buttons -->
+        <div class="flex gap-3 p-6 bg-gray-50 border-t border-gray-200 justify-center">
+            {% for button in buttons %}
+                <button class="px-4 py-2 {{ button.class }} rounded transition font-medium text-sm"
+                        @click="{% if button.action %}{{ button.action }}{% else %}showModal = null{% endif %}">
+                    {{ button.label }}
+                </button>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endmacro %}
+
+<!-- Confirmation Dialog -->
+{% macro confirm_modal(id, title, message, confirm_text='Confirm', cancel_text='Cancel', confirm_action='confirm()', danger=False) %}
+<div id="{{ id }}" 
+     x-show="showModal === '{{ id }}'"
+     class="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center p-4"
+     style="display: none;">
+    
+    <div class="bg-white rounded-lg shadow-xl max-w-sm w-full transform transition-all">
+        <!-- Content -->
+        <div class="p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ title }}</h3>
+            <p class="text-gray-600 text-sm">{{ message }}</p>
+        </div>
+        
+        <!-- Buttons -->
+        <div class="flex gap-3 p-6 bg-gray-50 border-t border-gray-200 justify-end">
+            <button class="px-4 py-2 border-2 border-gray-300 text-gray-900 rounded hover:bg-gray-100 transition font-medium text-sm"
+                    @click="showModal = null">
+                {{ cancel_text }}
+            </button>
+            <button class="px-4 py-2 {% if danger %}bg-red-600 hover:bg-red-700{% else %}bg-primary-600 hover:bg-primary-700{% endif %} text-white rounded transition font-medium text-sm"
+                    @click="{{ confirm_action }}">
+                {{ confirm_text }}
+            </button>
+        </div>
+    </div>
+</div>
+{% endmacro %}
+
+<!-- Form Modal -->
+{% macro form_modal(id, title, action, method='POST', fields=[]) %}
+<div id="{{ id }}" 
+     x-show="showModal === '{{ id }}'"
+     class="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center p-4"
+     style="display: none;">
+    
+    <form method="{{ method }}" action="{{ action }}" 
+          class="bg-white rounded-lg shadow-xl max-w-md w-full transform transition-all"
+          @submit="showModal = null">
+        {% csrf_token %}
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between p-6 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">{{ title }}</h3>
+            <button type="button" 
+                    @click="showModal = null"
+                    class="text-gray-400 hover:text-gray-600 transition">
+                <svg class="w-6 h-6" data-feather="x"></svg>
+            </button>
+        </div>
+        
+        <!-- Body -->
+        <div class="p-6 space-y-4">
+            {% for field in fields %}
+                <div>
+                    <label for="{{ field.name }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                        {{ field.label }}
+                        {% if field.required %}<span class="text-red-500">*</span>{% endif %}
+                    </label>
+                    {% if field.type == 'textarea' %}
+                        <textarea id="{{ field.name }}"
+                                  name="{{ field.name }}"
+                                  placeholder="{{ field.placeholder }}"
+                                  {% if field.required %}required{% endif %}
+                                  rows="4"
+                                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"></textarea>
+                    {% elif field.type == 'select' %}
+                        <select id="{{ field.name }}"
+                                name="{{ field.name }}"
+                                {% if field.required %}required{% endif %}
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                            <option value="">-- Select {{ field.label|lower }} --</option>
+                            {% for value, label in field.options %}
+                                <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    {% else %}
+                        <input type="{{ field.type|default:'text' }}"
+                               id="{{ field.name }}"
+                               name="{{ field.name }}"
+                               placeholder="{{ field.placeholder }}"
+                               {% if field.required %}required{% endif %}
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Footer -->
+        <div class="flex gap-3 p-6 bg-gray-50 border-t border-gray-200">
+            <button type="button" 
+                    @click="showModal = null"
+                    class="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-900 rounded hover:bg-gray-100 transition font-medium">
+                Cancel
+            </button>
+            <button type="submit" 
+                    class="flex-1 px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 transition font-medium">
+                Submit
+            </button>
+        </div>
+    </form>
+</div>
+{% endmacro %}
+
+<!-- Dropdown Menu Component -->
+{% macro dropdown_menu(id, trigger_label, items=[]) %}
+<div class="relative" x-data="{ open: false }">
+    <!-- Trigger Button -->
+    <button @click="open = !open"
+            @click.away="open = false"
+            class="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition flex items-center gap-2">
+        {{ trigger_label }}
+        <svg class="w-4 h-4" data-feather="chevron-down"></svg>
+    </button>
+    
+    <!-- Menu Items -->
+    <div x-show="open"
+         class="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+        {% for item in items %}
+            <a href="{{ item.href }}" 
+               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg transition">
+                {% if item.icon %}<svg class="w-4 h-4 inline mr-2" data-feather="{{ item.icon }}"></svg>{% endif %}
+                {{ item.label }}
+            </a>
+        {% endfor %}
+    </div>
+</div>
+{% endmacro %}
+
+<!-- Toast Notification Component -->
+{% macro toast(type='info', message='', icon='info') %}
+<div class="fixed bottom-4 right-4 max-w-sm animate-slide-up z-50"
+     x-data="{ show: true }"
+     @click.outside="show = false">
+    
+    <div class="bg-white rounded-lg shadow-lg border-l-4 {% if type == 'success' %}border-green-500{% elif type == 'error' %}border-red-500{% elif type == 'warning' %}border-amber-500{% else %}border-blue-500{% endif %} p-4 flex items-start gap-3">
+        <svg class="w-5 h-5 flex-shrink-0 mt-0.5 {% if type == 'success' %}text-green-600{% elif type == 'error' %}text-red-600{% elif type == 'warning' %}text-amber-600{% else %}text-blue-600{% endif %}" 
+             data-feather="{{ icon }}"></svg>
+        <div class="flex-1">
+            <p class="text-sm {% if type == 'success' %}text-green-800{% elif type == 'error' %}text-red-800{% elif type == 'warning' %}text-amber-800{% else %}text-blue-800{% endif %}">
+                {{ message }}
+            </p>
+        </div>
+        <button @click="show = false"
+                class="text-gray-400 hover:text-gray-600 transition">
+            <svg class="w-4 h-4" data-feather="x"></svg>
+        </button>
+    </div>
+</div>
+{% endmacro %}
+
+<!-- Popover Component -->
+{% macro popover(id, trigger_text, content) %}
+<div class="relative inline-block" x-data="{ open: false }">
+    <!-- Trigger -->
+    <button @click="open = !open"
+            @click.away="open = false"
+            class="text-primary-600 hover:text-primary-700 underline text-sm">
+        {{ trigger_text }}
+    </button>
+    
+    <!-- Popover Content -->
+    <div x-show="open"
+         class="absolute bottom-full left-0 mb-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50">
+        {{ content }}
+        <div class="absolute top-full left-4 w-2 h-2 bg-white border-r border-b border-gray-200 transform rotate-45"></div>
+    </div>
+</div>
+{% endmacro %}
+
+<!-- Tooltip Component -->
+{% macro tooltip(text, position='top') %}
+<div class="relative inline-block group">
+    <svg class="w-4 h-4 text-gray-400 cursor-help inline" data-feather="help-circle"></svg>
+    <div class="invisible group-hover:visible absolute {% if position == 'top' %}bottom-full mb-2{% elif position == 'bottom' %}top-full mt-2{% elif position == 'left' %}right-full mr-2{% else %}left-full ml-2{% endif %} left-0 w-48 bg-gray-900 text-white text-xs rounded p-2 z-50">
+        {{ text }}
+    </div>
+</div>
+{% endmacro %}
+
+<!-- Radio Group Component -->
+{% macro radio_group(name, options, value='') %}
+<div class="space-y-3">
+    {% for option in options %}
+        <label class="flex items-center gap-3 cursor-pointer">
+            <input type="radio"
+                   name="{{ name }}"
+                   value="{{ option.value }}"
+                   {% if option.value == value %}checked{% endif %}
+                   class="w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500">
+            <span class="text-sm text-gray-700">{{ option.label }}</span>
+        </label>
+    {% endfor %}
+</div>
+{% endmacro %}
+
+<!-- Checkbox Group Component -->
+{% macro checkbox_group(name, options, selected=[]) %}
+<div class="space-y-3">
+    {% for option in options %}
+        <label class="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox"
+                   name="{{ name }}"
+                   value="{{ option.value }}"
+                   {% if option.value in selected %}checked{% endif %}
+                   class="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500">
+            <span class="text-sm text-gray-700">{{ option.label }}</span>
+        </label>
+    {% endfor %}
+</div>
+{% endmacro %}
+
+<!-- Badge Component -->
+{% macro badge(text, color='default', size='sm') %}
+<span class="inline-flex items-center px-{% if size == 'sm' %}2{% else %}3{% endif %} py-{% if size == 'sm' %}0.5{% else %}1{% endif %} rounded-full text-{% if size == 'sm' %}xs{% else %}sm{% endif %} font-medium
+    {% if color == 'success' %}bg-green-100 text-green-800
+    {% elif color == 'error' %}bg-red-100 text-red-800
+    {% elif color == 'warning' %}bg-amber-100 text-amber-800
+    {% elif color == 'info' %}bg-blue-100 text-blue-800
+    {% elif color == 'primary' %}bg-primary-100 text-primary-800
+    {% else %}bg-gray-100 text-gray-800
+    {% endif %}">
+    {{ text }}
+</span>
+{% endmacro %}
+
+<!-- Loading Spinner Component -->
+{% macro loading_spinner(text='Loading...', size='md') %}
+<div class="flex items-center justify-center gap-3 p-4">
+    <div class="animate-spin rounded-full h-{% if size == 'sm' %}4{% elif size == 'lg' %}8{% else %}6{% endif %} w-{% if size == 'sm' %}4{% elif size == 'lg' %}8{% else %}6{% endif %} border-2 border-gray-300 border-t-primary-600"></div>
+    <p class="text-gray-700">{{ text }}</p>
+</div>
+{% endmacro %}
+
+<!-- Empty State Component -->
+{% macro empty_state(icon='inbox', title='No items', message='There are no items to display') %}
+<div class="flex flex-col items-center justify-center py-12">
+    <svg class="w-16 h-16 text-gray-400 mb-4" data-feather="{{ icon }}"></svg>
+    <h3 class="text-lg font-semibold text-gray-900 mb-1">{{ title }}</h3>
+    <p class="text-gray-600 text-sm">{{ message }}</p>
+</div>
+{% endmacro %}

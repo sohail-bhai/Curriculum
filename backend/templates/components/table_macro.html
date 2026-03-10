@@ -1,0 +1,300 @@
+<!-- Reusable Data Table Component -->
+
+{% macro data_table(columns, rows, sortable=True, filterable=True, paginated=True, actions=[]) %}
+<div class="bg-white rounded-lg shadow">
+    <!-- Table Controls -->
+    {% if filterable %}
+        <div class="p-4 border-b border-gray-200 space-y-4 md:space-y-0 md:flex md:items-center md:justify-between">
+            <div class="relative flex-1">
+                <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" data-feather="search"></svg>
+                <input type="text" 
+                       placeholder="Search..."
+                       class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+            </div>
+        </div>
+    {% endif %}
+    
+    <!-- Table -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <!-- Header -->
+            <thead>
+                <tr class="bg-gray-50 border-b border-gray-200">
+                    <!-- Checkbox Column -->
+                    {% if actions %}
+                        <th class="px-6 py-3 text-left">
+                            <input type="checkbox" class="rounded border-gray-300">
+                        </th>
+                    {% endif %}
+                    
+                    <!-- Column Headers -->
+                    {% for column in columns %}
+                        <th class="px-6 py-3 text-left font-semibold text-gray-700">
+                            <div class="flex items-center gap-2 {% if sortable %}cursor-pointer hover:text-gray-900{% endif %}">
+                                {{ column.label }}
+                                {% if sortable and column.sortable %}
+                                    <svg class="w-4 h-4 text-gray-400" data-feather="arrow-up-down"></svg>
+                                {% endif %}
+                            </div>
+                        </th>
+                    {% endfor %}
+                    
+                    <!-- Actions Column -->
+                    {% if actions %}
+                        <th class="px-6 py-3 text-right font-semibold text-gray-700">Actions</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            
+            <!-- Body -->
+            <tbody class="divide-y divide-gray-200">
+                {% for row in rows %}
+                    <tr class="hover:bg-gray-50 transition">
+                        <!-- Checkbox -->
+                        {% if actions %}
+                            <td class="px-6 py-4">
+                                <input type="checkbox" class="rounded border-gray-300">
+                            </td>
+                        {% endif %}
+                        
+                        <!-- Row Data -->
+                        {% for column in columns %}
+                            <td class="px-6 py-4 text-gray-900">
+                                {% if column.type == 'badge' %}
+                                    {% include "components/badge.html" with text=row[column.key] color=row[column.key|add:'_color'] %}
+                                {% elif column.type == 'avatar' %}
+                                    <div class="flex items-center gap-2">
+                                        <img src="{{ row[column.key] }}" alt="{{ row[column.image_alt_key] }}" class="w-8 h-8 rounded-full">
+                                        <span>{{ row[column.label_key] }}</span>
+                                    </div>
+                                {% elif column.type == 'progress' %}
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-24 bg-gray-200 rounded-full h-2">
+                                            <div class="bg-primary-600 h-2 rounded-full" style="width: {{ row[column.key] }}%"></div>
+                                        </div>
+                                        <span>{{ row[column.key] }}%</span>
+                                    </div>
+                                {% elif column.type == 'link' %}
+                                    <a href="{{ row[column.url_key] }}" class="text-primary-600 hover:text-primary-700 underline">
+                                        {{ row[column.key] }}
+                                    </a>
+                                {% elif column.type == 'date' %}
+                                    {{ row[column.key]|date:"M d, Y" }}
+                                {% else %}
+                                    {{ row[column.key] }}
+                                {% endif %}
+                            </td>
+                        {% endfor %}
+                        
+                        <!-- Actions -->
+                        {% if actions %}
+                            <td class="px-6 py-4 text-right">
+                                <div class="flex items-center justify-end gap-2">
+                                    {% for action in actions %}
+                                        {% if action.type == 'link' %}
+                                            <a href="{{ action.url }}"
+                                               class="px-3 py-1 text-sm text-primary-600 hover:bg-primary-50 rounded transition"
+                                               title="{{ action.label }}">
+                                                <svg class="w-4 h-4" data-feather="{{ action.icon }}"></svg>
+                                            </a>
+                                        {% elif action.type == 'button' %}
+                                            <button class="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded transition"
+                                                    onclick="{{ action.onclick }}"
+                                                    title="{{ action.label }}">
+                                                <svg class="w-4 h-4" data-feather="{{ action.icon }}"></svg>
+                                            </button>
+                                        {% elif action.type == 'dropdown' %}
+                                            <div class="relative" x-data="{ open: false }">
+                                                <button @click="open = !open"
+                                                        class="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded transition">
+                                                    <svg class="w-4 h-4" data-feather="more-vertical"></svg>
+                                                </button>
+                                                <div x-show="open" 
+                                                     @click.away="open = false"
+                                                     class="absolute right-0 mt-1 bg-white border border-gray-200 rounded shadow-lg z-10">
+                                                    {% for submenu in action.items %}
+                                                        <a href="{{ submenu.url }}"
+                                                           class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                                            {{ submenu.label }}
+                                                        </a>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </td>
+                        {% endif %}
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="{{ columns|length|add:1 }}" class="px-6 py-12 text-center">
+                            <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" data-feather="inbox"></svg>
+                            <p class="text-gray-600 font-medium">No data to display</p>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination | Footer -->
+    {% if paginated %}
+        <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between text-sm">
+            <p class="text-gray-600">
+                Showing <strong>1</strong> to <strong>{{ rows|length }}</strong> of <strong>{{ rows|length }}</strong>
+            </p>
+            <div class="flex gap-2">
+                <button class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50">Previous</button>
+                <button class="px-3 py-1 bg-primary-600 text-white rounded">1</button>
+                <button class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50">Next</button>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endmacro %}
+
+<!-- Simple List Component -->
+{% macro list_item(title, subtitle='', avatar='', icon='', status='', actions=[]) %}
+<div class="flex items-center justify-between p-4 border-b border-gray-200 hover:bg-gray-50 transition">
+    <div class="flex items-center gap-3 flex-1">
+        {% if avatar %}
+            <img src="{{ avatar }}" alt="{{ title }}" class="w-10 h-10 rounded-full">
+        {% elif icon %}
+            <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                <svg class="w-5 h-5 text-gray-600" data-feather="{{ icon }}"></svg>
+            </div>
+        {% endif %}
+        
+        <div>
+            <p class="font-medium text-gray-900">{{ title }}</p>
+            {% if subtitle %}
+                <p class="text-xs text-gray-600">{{ subtitle }}</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    {% if status %}
+        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 mr-4">
+            {{ status }}
+        </span>
+    {% endif %}
+    
+    <div class="flex items-center gap-2">
+        {% for action in actions %}
+            <a href="{{ action.url }}" 
+               class="p-2 text-gray-400 hover:text-gray-600 transition"
+               title="{{ action.label }}">
+                <svg class="w-4 h-4" data-feather="{{ action.icon }}"></svg>
+            </a>
+        {% endfor %}
+    </div>
+</div>
+{% endmacro %}
+
+<!-- Card Grid Component -->
+{% macro card_grid(items, columns=3) %}
+<div class="grid gap-6 grid-cols-1 {% if columns == 2 %}md:grid-cols-2{% elif columns == 3 %}md:grid-cols-2 lg:grid-cols-3{% elif columns == 4 %}md:grid-cols-2 lg:grid-cols-4{% endif %}">
+    {% for item in items %}
+        <div class="bg-white rounded-lg shadow hover:shadow-md transition p-6 flex flex-col">
+            <!-- Header -->
+            {% if item.icon %}
+                <div class="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center mb-3">
+                    <svg class="w-6 h-6 text-primary-600" data-feather="{{ item.icon }}"></svg>
+                </div>
+            {% endif %}
+            
+            <h3 class="font-semibold text-gray-900 mb-2">{{ item.title }}</h3>
+            
+            <!-- Content -->
+            {% if item.description %}
+                <p class="text-sm text-gray-600 mb-4 flex-1">{{ item.description }}</p>
+            {% endif %}
+            
+            <!-- Footer -->
+            {% if item.action %}
+                <a href="{{ item.action }}" class="text-primary-600 hover:text-primary-700 text-sm font-medium mt-auto">
+                    Learn more →
+                </a>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+{% endmacro %}
+
+<!-- Stat Box Component -->
+{% macro stat_box(label, value, icon='', color='primary', trend='') %}
+<div class="bg-white rounded-lg shadow p-6 border-l-4 border-{{ color }}-500">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-sm font-semibold text-gray-600">{{ label }}</h3>
+        {% if icon %}
+            <div class="w-10 h-10 rounded-lg bg-{{ color }}-100 flex items-center justify-center">
+                <svg class="w-6 h-6 text-{{ color }}-600" data-feather="{{ icon }}"></svg>
+            </div>
+        {% endif %}
+    </div>
+    
+    <p class="text-3xl font-bold text-gray-900">{{ value }}</p>
+    
+    {% if trend %}
+        <p class="text-sm text-green-600 mt-2">
+            <svg class="w-4 h-4 inline" data-feather="trending-up"></svg>
+            {{ trend }}
+        </p>
+    {% endif %}
+</div>
+{% endmacro %}
+
+<!-- Breadcrumb Component -->
+{% macro breadcrumb(items=[]) %}
+<nav class="flex items-center gap-2 text-sm" aria-label="Breadcrumb">
+    {% for item in items %}
+        {% if not forloop.last %}
+            <a href="{{ item.url }}" class="text-primary-600 hover:text-primary-700">{{ item.label }}</a>
+        {% else %}
+            <span class="text-gray-600">{{ item.label }}</span>
+        {% endif %}
+        
+        {% if not forloop.last %}
+            <svg class="w-4 h-4 text-gray-400" data-feather="chevron-right"></svg>
+        {% endif %}
+    {% endfor %}
+</nav>
+{% endmacro %}
+
+<!-- Pagination Component -->
+{% macro pagination(current_page=1, total_pages=1, url_pattern='') %}
+<div class="flex items-center justify-center gap-2">
+    {% if current_page > 1 %}
+        <a href="{{ url_pattern }}?page=1" class="px-3 py-2 border border-gray-300 rounded hover:bg-gray-50 text-sm">First</a>
+        <a href="{{ url_pattern }}?page={{ current_page|add:'-1' }}" class="px-3 py-2 border border-gray-300 rounded hover:bg-gray-50 text-sm">Previous</a>
+    {% endif %}
+    
+    {% for page in "x"|rjust:total_pages %}
+        {% if page|add:'0' == current_page %}
+            <button class="px-3 py-2 bg-primary-600 text-white rounded text-sm">{{ page|add:'1' }}</button>
+        {% else %}
+            <a href="{{ url_pattern }}?page={{ page|add:'1' }}" class="px-3 py-2 border border-gray-300 rounded hover:bg-gray-50 text-sm">{{ page|add:'1' }}</a>
+        {% endif %}
+    {% endfor %}
+    
+    {% if current_page < total_pages %}
+        <a href="{{ url_pattern }}?page={{ current_page|add:'1' }}" class="px-3 py-2 border border-gray-300 rounded hover:bg-gray-50 text-sm">Next</a>
+        <a href="{{ url_pattern }}?page={{ total_pages }}" class="px-3 py-2 border border-gray-300 rounded hover:bg-gray-50 text-sm">Last</a>
+    {% endif %}
+</div>
+{% endmacro %}
+
+<!-- Tabs Component -->
+{% macro tabs(tabs_list, active_tab='') %}
+<div class="border-b border-gray-200 mb-6">
+    <div class="flex gap-8">
+        {% for tab in tabs_list %}
+            <button class="py-3 px-1 font-medium text-sm border-b-2 {% if tab.id == active_tab or forloop.first %}border-primary-600 text-primary-600{% else %}border-transparent text-gray-600 hover:text-gray-900{% endif %} transition">
+                {% if tab.icon %}<svg class="w-4 h-4 inline mr-2" data-feather="{{ tab.icon }}"></svg>{% endif %}
+                {{ tab.label }}
+            </button>
+        {% endfor %}
+    </div>
+</div>
+{% endmacro %}

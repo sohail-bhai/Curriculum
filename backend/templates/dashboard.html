@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - CurriculumOS{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Page Header -->
+    <div>
+        <h1 class="text-3xl font-bold text-gray-900">Welcome, {{ user.first_name }}!</h1>
+        <p class="text-gray-600 mt-2">Here's your curriculum dashboard</p>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Total Subjects -->
+        <div class="bg-white rounded-lg shadow hover:shadow-lg transition p-6 border-l-4 border-blue-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">Total Subjects</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2">{{ total_subjects }}</p>
+                </div>
+                <div class="bg-blue-100 rounded-lg p-3">
+                    <svg class="w-8 h-8 text-blue-600" data-feather="book-open"></svg>
+                </div>
+            </div>
+            <p class="text-xs text-gray-500 mt-4">Across all programmes</p>
+        </div>
+        
+        <!-- Pending Approval -->
+        <div class="bg-white rounded-lg shadow hover:shadow-lg transition p-6 border-l-4 border-amber-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">Pending Approval</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2">{{ pending_subjects }}</p>
+                </div>
+                <div class="bg-amber-100 rounded-lg p-3">
+                    <svg class="w-8 h-8 text-amber-600" data-feather="alert-circle"></svg>
+                </div>
+            </div>
+            <p class="text-xs text-gray-500 mt-4">Awaiting review</p>
+        </div>
+        
+        <!-- Approved -->
+        <div class="bg-white rounded-lg shadow hover:shadow-lg transition p-6 border-l-4 border-green-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">Approved</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2">{{ approved_subjects }}</p>
+                </div>
+                <div class="bg-green-100 rounded-lg p-3">
+                    <svg class="w-8 h-8 text-green-600" data-feather="check-circle"></svg>
+                </div>
+            </div>
+            <p class="text-xs text-gray-500 mt-4">Ready for use</p>
+        </div>
+        
+        <!-- In Progress -->
+        <div class="bg-white rounded-lg shadow hover:shadow-lg transition p-6 border-l-4 border-purple-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">In Progress</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2">{{ draft_subjects }}</p>
+                </div>
+                <div class="bg-purple-100 rounded-lg p-3">
+                    <svg class="w-8 h-8 text-purple-600" data-feather="edit"></svg>
+                </div>
+            </div>
+            <p class="text-xs text-gray-500 mt-4">Being authored</p>
+        </div>
+    </div>
+    
+    <!-- Recent Activity & Quick Actions -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Recent Subjects -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-lg font-bold text-gray-900">Recent Subjects</h2>
+                    <a href="{% url 'subject-list' %}" class="text-primary-600 hover:text-primary-700 text-sm font-medium">
+                        View all →
+                    </a>
+                </div>
+                
+                <div class="space-y-4">
+                    {% for subject in recent_subjects %}
+                    <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-gray-900">{{ subject.subject_code }}</h3>
+                            <p class="text-sm text-gray-600">{{ subject.subject_title }}</p>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            {% if subject.status == 'DRAFT' %}
+                                <span class="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">Draft</span>
+                            {% elif subject.status == 'PENDING' %}
+                                <span class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">Pending</span>
+                            {% elif subject.status == 'APPROVED' %}
+                                <span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">Approved</span>
+                            {% endif %}
+                            <a href="{% url 'subject-detail' subject.id %}" 
+                               class="text-primary-600 hover:text-primary-700 p-2 rounded-lg hover:bg-gray-100">
+                                <svg class="w-5 h-5" data-feather="arrow-right"></svg>
+                            </a>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-8">
+                        <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" data-feather="inbox"></svg>
+                        <p class="text-gray-600">No subjects yet</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-lg font-bold text-gray-900 mb-6">Quick Actions</h2>
+            <div class="space-y-3">
+                <a href="{% url 'subject-create' %}" 
+                   class="w-full flex items-center px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition font-medium">
+                    <svg class="w-5 h-5 mr-2" data-feather="plus"></svg>
+                    New Subject
+                </a>
+                
+                {% if user.role == 'HOD' %}
+                <a href="{% url 'approval-queue' %}" 
+                   class="w-full flex items-center px-4 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg hover:shadow-lg transition font-medium">
+                    <svg class="w-5 h-5 mr-2" data-feather="check-circle"></svg>
+                    Review Pending
+                </a>
+                {% endif %}
+                
+                <a href="{% url 'analytics' %}" 
+                   class="w-full flex items-center px-4 py-3 border-2 border-gray-200 text-gray-900 rounded-lg hover:bg-gray-50 transition font-medium">
+                    <svg class="w-5 h-5 mr-2" data-feather="trending-up"></svg>
+                    View Analytics
+                </a>
+                
+                <a href="{% url 'profile' %}" 
+                   class="w-full flex items-center px-4 py-3 border-2 border-gray-200 text-gray-900 rounded-lg hover:bg-gray-50 transition font-medium">
+                    <svg class="w-5 h-5 mr-2" data-feather="settings"></svg>
+                    Settings
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

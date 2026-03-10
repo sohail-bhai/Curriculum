@@ -1,0 +1,247 @@
+<!-- Subject Form Component -->
+{% load widget_tweaks %}
+
+<form method="post" class="space-y-8" x-data="{ activeTab: 'basic' }">
+    {% csrf_token %}
+    
+    <!-- Form Header -->
+    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
+        <h2 class="text-2xl font-bold text-gray-900">
+            {% if form.instance.pk %}
+                Edit Subject: {{ form.instance.subject_code }}
+            {% else %}
+                Create New Subject
+            {% endif %}
+        </h2>
+        <p class="text-gray-600 mt-2">Fill in the details below to create or modify a subject curriculum</p>
+    </div>
+    
+    <!-- Tab Navigation -->
+    <div class="bg-white rounded-lg shadow">
+        <div class="flex border-b border-gray-200">
+            <button type="button" @click="activeTab = 'basic'"
+                    :class="activeTab === 'basic' ? 'border-b-2 border-primary-600 text-primary-600' : 'text-gray-600 hover:text-gray-900'"
+                    class="px-6 py-4 font-medium transition">
+                <svg class="w-5 h-5 inline mr-2" data-feather="info"></svg>
+                Basic Info
+            </button>
+            <button type="button" @click="activeTab = 'objectives'"
+                    :class="activeTab === 'objectives' ? 'border-b-2 border-primary-600 text-primary-600' : 'text-gray-600 hover:text-gray-900'"
+                    class="px-6 py-4 font-medium transition">
+                <svg class="w-5 h-5 inline mr-2" data-feather="target"></svg>
+                Objectives
+            </button>
+            <button type="button" @click="activeTab = 'outcomes'"
+                    :class="activeTab === 'outcomes' ? 'border-b-2 border-primary-600 text-primary-600' : 'text-gray-600 hover:text-gray-900'"
+                    class="px-6 py-4 font-medium transition">
+                <svg class="w-5 h-5 inline mr-2" data-feather="award"></svg>
+                Outcomes
+            </button>
+            <button type="button" @click="activeTab = 'mapping'"
+                    :class="activeTab === 'mapping' ? 'border-b-2 border-primary-600 text-primary-600' : 'text-gray-600 hover:text-gray-900'"
+                    class="px-6 py-4 font-medium transition">
+                <svg class="w-5 h-5 inline mr-2" data-feather="map"></svg>
+                Mapping
+            </button>
+        </div>
+        
+        <!-- Tab Content -->
+        <div class="p-6">
+            <!-- Basic Info Tab -->
+            <div x-show="activeTab === 'basic'" class="space-y-6 animate-fade-in">
+                {% if form.subject_code.errors %}
+                    <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <p class="text-red-700 text-sm">{{ form.subject_code.errors.0 }}</p>
+                    </div>
+                {% endif %}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Subject Code -->
+                    <div>
+                        <label for="{{ form.subject_code.id_for_label }}" 
+                               class="block text-sm font-semibold text-gray-700 mb-2">
+                            Subject Code *
+                        </label>
+                        {% render_form_field form.subject_code %}
+                    </div>
+                    
+                    <!-- Subject Title -->
+                    <div>
+                        <label for="{{ form.subject_title.id_for_label }}" 
+                               class="block text-sm font-semibold text-gray-700 mb-2">
+                            Subject Title *
+                        </label>
+                        {% render_form_field form.subject_title %}
+                    </div>
+                    
+                    <!-- Credits -->
+                    <div>
+                        <label for="{{ form.credits.id_for_label }}" 
+                               class="block text-sm font-semibold text-gray-700 mb-2">
+                            Credits
+                        </label>
+                        {% render_form_field form.credits %}
+                    </div>
+                    
+                    <!-- LTPSIC -->
+                    <div>
+                        <label for="{{ form.ltpsic.id_for_label }}" 
+                               class="block text-sm font-semibold text-gray-700 mb-2">
+                            LTPSIC
+                        </label>
+                        {% render_form_field form.ltpsic %}
+                    </div>
+                </div>
+                
+                <!-- Prerequisites -->
+                <div>
+                    <label for="{{ form.prerequisites.id_for_label }}" 
+                           class="block text-sm font-semibold text-gray-700 mb-2">
+                        Prerequisites
+                    </label>
+                    {% render_form_field form.prerequisites %}
+                </div>
+                
+                <!-- Description -->
+                <div>
+                    <label for="{{ form.description.id_for_label }}" 
+                           class="block text-sm font-semibold text-gray-700 mb-2">
+                        Description
+                    </label>
+                    {% render_form_field form.description %}
+                </div>
+            </div>
+            
+            <!-- Objectives Tab -->
+            <div x-show="activeTab === 'objectives'" class="space-y-6 animate-fade-in">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p class="text-sm text-blue-700">
+                        <strong>Course Learning Objectives:</strong> What students should be able to do after completing this course.
+                    </p>
+                </div>
+                
+                <div>
+                    <label for="{{ form.co_objectives.id_for_label }}" 
+                           class="block text-sm font-semibold text-gray-700 mb-2">
+                        Learning Objectives
+                    </label>
+                    {% render_form_field form.co_objectives %}
+                </div>
+            </div>
+            
+            <!-- Outcomes Tab -->
+            <div x-show="activeTab === 'outcomes'" class="space-y-6 animate-fade-in">
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <p class="text-sm text-green-700">
+                        <strong>Course Outcomes:</strong> Specific skills and knowledge outcomes aligned with program objectives.
+                    </p>
+                </div>
+                
+                <div>
+                    <label for="{{ form.course_outcomes.id_for_label }}" 
+                           class="block text-sm font-semibold text-gray-700 mb-2">
+                        Outcomes
+                    </label>
+                    {% render_form_field form.course_outcomes %}
+                </div>
+            </div>
+            
+            <!-- Mapping Tab -->
+            <div x-show="activeTab === 'mapping'" class="space-y-6 animate-fade-in">
+                <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                    <p class="text-sm text-purple-700">
+                        <strong>Mapping:</strong> Align course outcomes with program objectives and articulation matrix.
+                    </p>
+                </div>
+                
+                <div>
+                    <label for="{{ form.po_mapping.id_for_label }}" 
+                           class="block text-sm font-semibold text-gray-700 mb-2">
+                        Program Objective Mapping
+                    </label>
+                    {% render_form_field form.po_mapping %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.sdg_mapping.id_for_label }}" 
+                           class="block text-sm font-semibold text-gray-700 mb-2">
+                        SDG Mapping
+                    </label>
+                    {% render_form_field form.sdg_mapping %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Form Actions -->
+    <div class="flex items-center justify-between bg-gray-50 rounded-lg p-6 border border-gray-200">
+        <p class="text-sm text-gray-600">
+            💾 Changes are auto-saved. Make sure to review before submitting for approval.
+        </p>
+        <div class="flex gap-3">
+            <a href="{% url 'subject-list' %}" 
+               class="px-6 py-2 border-2 border-gray-300 text-gray-900 rounded-lg hover:bg-gray-100 transition font-medium">
+                Cancel
+            </a>
+            <button type="button" 
+                    class="px-6 py-2 border-2 border-gray-300 text-gray-900 rounded-lg hover:bg-gray-100 transition font-medium">
+                Save Draft
+            </button>
+            <button type="submit" 
+                    class="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition font-medium">
+                {% if form.instance.pk %}
+                    Update & Submit
+                {% else %}
+                    Create & Submit
+                {% endif %}
+            </button>
+        </div>
+    </div>
+</form>
+
+<!-- Form Field Rendering Template -->
+{% block form_field %}
+<style>
+    .form-field {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        transition: all 0.15s;
+    }
+    
+    .form-field:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .form-field.error {
+        border-color: #ef4444;
+    }
+    
+    .form-field:disabled {
+        background-color: #f3f4f6;
+        color: #9ca3af;
+    }
+    
+    textarea.form-field {
+        resize: vertical;
+        min-height: 120px;
+    }
+</style>
+{% endblock %}
+
+<script>
+    feather.replace();
+    
+    // Auto-save functionality
+    const formInputs = document.querySelectorAll('input, textarea, select');
+    formInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            // Save to localStorage or server
+            console.log('Field changed:', this.name, this.value);
+        });
+    });
+</script>

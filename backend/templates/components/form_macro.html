@@ -1,0 +1,245 @@
+<!-- Reusable Form Components Library -->
+
+<!-- Form Text Input Component -->
+{% macro form_input(name, label, type='text', placeholder='', required=False, error='', value='', help_text='') %}
+<div class="mb-4">
+    <label for="{{ name }}" class="block text-sm font-semibold text-gray-700 mb-2">
+        {{ label }}
+        {% if required %}<span class="text-red-500">*</span>{% endif %}
+    </label>
+    <input type="{{ type }}" 
+           id="{{ name }}"
+           name="{{ name }}"
+           placeholder="{{ placeholder }}"
+           value="{{ value }}"
+           {% if required %}required{% endif %}
+           {% if error %}aria-invalid="true" aria-describedby="{{ name }}-error"{% endif %}
+           class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition {% if error %}border-red-500 bg-red-50{% else %}border-gray-300{% endif %}">
+    
+    {% if error %}
+        <p id="{{ name }}-error" class="text-sm text-red-600 mt-1 flex items-center gap-1">
+            <svg class="w-4 h-4" data-feather="alert-circle"></svg>
+            {{ error }}
+        </p>
+    {% endif %}
+    
+    {% if help_text %}
+        <p class="text-xs text-gray-600 mt-1">{{ help_text }}</p>
+    {% endif %}
+</div>
+{% endmacro %}
+
+<!-- Form Textarea Component -->
+{% macro form_textarea(name, label, placeholder='', required=False, error='', value='', rows=4, help_text='') %}
+<div class="mb-4">
+    <label for="{{ name }}" class="block text-sm font-semibold text-gray-700 mb-2">
+        {{ label }}
+        {% if required %}<span class="text-red-500">*</span>{% endif %}
+    </label>
+    <textarea id="{{ name }}"
+              name="{{ name }}"
+              placeholder="{{ placeholder }}"
+              rows="{{ rows }}"
+              {% if required %}required{% endif %}
+              {% if error %}aria-invalid="true" aria-describedby="{{ name }}-error"{% endif %}
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition resize-none {% if error %}border-red-500 bg-red-50{% else %}border-gray-300{% endif %}">{{ value }}</textarea>
+    
+    {% if error %}
+        <p id="{{ name }}-error" class="text-sm text-red-600 mt-1 flex items-center gap-1">
+            <svg class="w-4 h-4" data-feather="alert-circle"></svg>
+            {{ error }}
+        </p>
+    {% endif %}
+    
+    {% if help_text %}
+        <p class="text-xs text-gray-600 mt-1">{{ help_text }}</p>
+    {% endif %}
+</div>
+{% endmacro %}
+
+<!-- Form Select Component -->
+{% macro form_select(name, label, options, required=False, error='', value='', help_text='') %}
+<div class="mb-4">
+    <label for="{{ name }}" class="block text-sm font-semibold text-gray-700 mb-2">
+        {{ label }}
+        {% if required %}<span class="text-red-500">*</span>{% endif %}
+    </label>
+    <select id="{{ name }}"
+            name="{{ name }}"
+            {% if required %}required{% endif %}
+            {% if error %}aria-invalid="true" aria-describedby="{{ name }}-error"{% endif %}
+            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition appearance-none cursor-pointer {% if error %}border-red-500 bg-red-50{% else %}border-gray-300{% endif %}"
+            style="background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 viewBox=%220 0 20 20%22%3E%3Cpath stroke=%22%236b7280%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%221.5%22 d=%22m6 8 4 4 4-4%22/%3E%3C/svg%3E'); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem;">
+        <option value="">-- Select {{ label|lower }} --</option>
+        {% for opt_value, opt_label in options %}
+            <option value="{{ opt_value }}" {% if opt_value == value %}selected{% endif %}>
+                {{ opt_label }}
+            </option>
+        {% endfor %}
+    </select>
+    
+    {% if error %}
+        <p id="{{ name }}-error" class="text-sm text-red-600 mt-1 flex items-center gap-1">
+            <svg class="w-4 h-4" data-feather="alert-circle"></svg>
+            {{ error }}
+        </p>
+    {% endif %}
+    
+    {% if help_text %}
+        <p class="text-xs text-gray-600 mt-1">{{ help_text }}</p>
+    {% endif %}
+</div>
+{% endmacro %}
+
+<!-- Form Checkbox Component -->
+{% macro form_checkbox(name, label, required=False, error='', checked=False, help_text='') %}
+<div class="mb-4 flex items-start gap-3">
+    <input type="checkbox"
+           id="{{ name }}"
+           name="{{ name }}"
+           value="on"
+           {% if checked %}checked{% endif %}
+           class="flex-shrink-0 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer">
+    
+    <div class="flex-1 pt-0.5">
+        <label for="{{ name }}" class="text-sm font-medium text-gray-700 cursor-pointer">
+            {{ label }}
+            {% if required %}<span class="text-red-500">*</span>{% endif %}
+        </label>
+        
+        {% if error %}
+            <p class="text-sm text-red-600 mt-1 flex items-center gap-1">
+                <svg class="w-4 h-4" data-feather="alert-circle"></svg>
+                {{ error }}
+            </p>
+        {% endif %}
+        
+        {% if help_text %}
+            <p class="text-xs text-gray-600 mt-1">{{ help_text }}</p>
+        {% endif %}
+    </div>
+</div>
+{% endmacro %}
+
+<!-- Form Radio Group Component -->
+{% macro form_radio_group(name, label, options, required=False, error='', value='', help_text='') %}
+<div class="mb-4">
+    <p class="block text-sm font-semibold text-gray-700 mb-3">
+        {{ label }}
+        {% if required %}<span class="text-red-500">*</span>{% endif %}
+    </p>
+    
+    <div class="space-y-3">
+        {% for opt_value, opt_label in options %}
+            <label class="flex items-center gap-3 cursor-pointer">
+                <input type="radio"
+                       name="{{ name }}"
+                       value="{{ opt_value }}"
+                       {% if opt_value == value %}checked{% endif %}
+                       class="w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500">
+                <span class="text-sm text-gray-700">{{ opt_label }}</span>
+            </label>
+        {% endfor %}
+    </div>
+    
+    {% if error %}
+        <p class="text-sm text-red-600 mt-2 flex items-center gap-1">
+            <svg class="w-4 h-4" data-feather="alert-circle"></svg>
+            {{ error }}
+        </p>
+    {% endif %}
+    
+    {% if help_text %}
+        <p class="text-xs text-gray-600 mt-2">{{ help_text }}</p>
+    {% endif %}
+</div>
+{% endmacro %}
+
+<!-- Form Fieldset Component -->
+{% macro form_fieldset(legend, fields) %}
+<fieldset class="mb-6 border border-gray-300 rounded-lg p-6">
+    <legend class="text-sm font-semibold text-gray-900 px-2 -ml-2">{{ legend }}</legend>
+    <div class="mt-4 space-y-4">
+        {{ fields }}
+    </div>
+</fieldset>
+{% endmacro %}
+
+<!-- Form Group (Two Column) Component -->
+{% macro form_group(field1, field2) %}
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+    <div>{{ field1 }}</div>
+    <div>{{ field2 }}</div>
+</div>
+{% endmacro %}
+
+<!-- Form Submit Buttons Component -->
+{% macro form_buttons(submit_text='Submit', cancel_url='#', secondary_text='') %}
+<div class="flex items-center gap-3 pt-6 border-t border-gray-200 mt-6">
+    <a href="{{ cancel_url }}" 
+       class="px-6 py-2 border-2 border-gray-300 text-gray-900 rounded-lg hover:bg-gray-100 transition font-medium">
+        Cancel
+    </a>
+    {% if secondary_text %}
+        <button type="button" 
+                class="px-6 py-2 border-2 border-gray-300 text-gray-900 rounded-lg hover:bg-gray-100 transition font-medium">
+            {{ secondary_text }}
+        </button>
+    {% endif %}
+    <button type="submit" 
+            class="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition font-medium ml-auto">
+        {{ submit_text }}
+    </button>
+</div>
+{% endmacro %}
+
+<!-- Inline Error Alert Component -->
+{% macro form_error_alert(message) %}
+<div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+    <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" data-feather="alert-circle"></svg>
+    <div>
+        <h3 class="text-sm font-semibold text-red-900">Error</h3>
+        <p class="text-sm text-red-700 mt-1">{{ message }}</p>
+    </div>
+</div>
+{% endmacro %}
+
+<!-- Inline Success Alert Component -->
+{% macro form_success_alert(message) %}
+<div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3">
+    <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" data-feather="check-circle"></svg>
+    <div>
+        <h3 class="text-sm font-semibold text-green-900">Success</h3>
+        <p class="text-sm text-green-700 mt-1">{{ message }}</p>
+    </div>
+</div>
+{% endmacro %}
+
+<!-- Inline Info Alert Component -->
+{% macro form_info_alert(message) %}
+<div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-3">
+    <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" data-feather="info"></svg>
+    <p class="text-sm text-blue-700">{{ message }}</p>
+</div>
+{% endmacro %}
+
+<!-- Form Label Component -->
+{% macro form_label(name, text, required=False) %}
+<label for="{{ name }}" class="block text-sm font-semibold text-gray-700 mb-2">
+    {{ text }}
+    {% if required %}<span class="text-red-500">*</span>{% endif %}
+</label>
+{% endmacro %}
+
+<!-- Form Help Text Component -->
+{% macro form_help_text(text) %}
+<p class="text-xs text-gray-600 mt-1">{{ text }}</p>
+{% endmacro %}
+
+<!-- Form Error Text Component -->
+{% macro form_error_text(message) %}
+<p class="text-sm text-red-600 mt-1 flex items-center gap-1">
+    <svg class="w-4 h-4" data-feather="alert-circle"></svg>
+    {{ message }}
+</p>
+{% endmacro %}
